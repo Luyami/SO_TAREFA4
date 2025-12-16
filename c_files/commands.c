@@ -179,6 +179,14 @@ void pager(char alg[MAX_ARG_LEN], char file_path[MAX_ARG_LEN], int frames){
 
     if (strcmp(alg, "fifo") == 0){
         pager_fifo(content, f_size, frames);
+    } else if (strcmp(alg, "lru") == 0){
+        pager_lru(content, f_size, frames);
+    } else if (strcmp(alg, "opt") == 0){
+        pager_opt(content, f_size, frames);
+    } else if (strcmp(alg, "clock") == 0){
+        pager_clock(content, f_size, frames);
+    } else if (strcmp(alg, "nru") == 0){
+        pager_nru(content, f_size, frames);
     }
     else printf("Pager: Specified algorithm is not available!\n");
 }
