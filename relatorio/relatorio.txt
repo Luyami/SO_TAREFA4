@@ -1,0 +1,63 @@
+*** Análise da execução do fork() pelo programa "fork.c"
+
+-- fork()
+- Retorna -1, caso falhe
+- Caso contrário, criará o processo filho e retornará o PID desse novo processo para o processo pai (armazenado em retval).
+  O processo filho recebe 0 como retorno do fork (provavelmente para indicar que estamos no processo filho e não no processo pai).
+
+-------------
+-------------
+-------------
+
+*** Análise do valor da variável "x" na execução do programa "fork-print.c"
+
+(Supondo que o fork() não falhe)
+
+-- No processo pai:
+- x = 0, printa 0
+- fork() return PID do processo filho, então retval > 0 e, consequentemente, x continua sendo setado para 0
+- printa 0 novamente
+
+-- No proceso filho:
+- x = 0, printa 0
+- fork() retorna 0, então retval <= 0, o bloco do else é executado e, consequentemente, o x é incrementado em 1 unidade (x++).
+- printa 1, já que o x foi incrementado
+
+-------------
+-------------
+-------------
+
+*** Análise do execve() no programa "fork-execve.c"
+
+-- Quando o processo filho chama o execve(), ele para de executar o código do processo pai e passa a executar o código
+   do programa específicado, no caso, "/bin/date". Pela execução do código contido em "fork-execve.c", dá para perceber que o execve()
+   não retorna. 
+
+-------------
+-------------
+-------------
+
+*** Diário de implementação do lushell (minishell, mas me homenagenado)
+
+-- Não tive grandes dificuldades na implementação, o uso dos comandos fork(), execvp() e wait() são bem diretos e simples de 
+   entender o funcionamento, pelo menos em alto nível.
+  
+-- Fiz alguns testes usando diferentes comandos, tanto externos quanto internos. Tanto a execução em primeiro plano quanto em segundo plano parecem estar ok!
+
+-- Na última página do pdf, tem um exemplo de uso, usei a sequência de comandos mostrada e obtive a seguinte saída:
+                  lushell> sleep 10 &
+                  [1] 6040
+                  lushell> sleep 5 &
+                  [2] 6041
+                  lushell> jobs
+                  Processos em background:
+                  [1] 6040 Running
+                  [2] 6041 Running
+                  lushell> wait
+                  Aguardando processos em background...
+                  [2]+ Done (PID 6041)  #Depois de 5 segundos aproximadamente
+                  [1]+ Done (PID 6040)  #Depois de 10 segundos aproximadamente
+                  Todos os processos terminaram
+                  lushell>
+
+-- Deixei o código o mais bem estruturado possível e dividido em diferentes arquivos, pois vou tentar melhorar esse shell... é mais divertido do que parece.
