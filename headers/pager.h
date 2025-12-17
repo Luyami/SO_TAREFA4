@@ -10,5 +10,7 @@ void pager_lru(char* content, size_t content_size, int frames);
 void pager_opt(char* content, size_t content_size, int frames);
 void pager_clock(char* content, size_t content_size, int frames);
 void pager_nru(char* content, size_t content_size, int frames);
+void pager_lfu(char* content, size_t content_size, int frames);
+void pager_mfu(char* content, size_t content_size, int frames);
 
 #endif

@@ -1,13 +1,24 @@
 #include <pager.h>
 #include <stdio.h>
 
-static void print_stats(const char* name, int frames, int refs, int pageFaults, int evictions){
+static void print_stats(const char* name, int frames, int refs, int pageFaults, int evictions, char* activeFrames){
     printf("Algoritmo: %s\n", name);
     printf("Frames: %i\n", frames);
     printf("Referências: %i\n", refs);
     printf("Falta de Páginas: %i\n", pageFaults);
-    printf("Taxa de Faltas: %f\n", refs ? (float)pageFaults/refs : 0.0f);
+    float faultRate = refs ? (float)pageFaults / refs : 0.0f;
+    printf("Taxa de Faltas: %.2f%%\n", faultRate * 100.0f);
     printf("Evicções: %i\n", evictions);
+    printf("frames_ids: ");
+    for (int i = 0; i < frames; ++i){
+        printf("%d ", i);
+    }
+    printf("\n");
+    printf("pages_ids: ");
+    for (int i = 0; i < frames; ++i){
+        printf("%d ", activeFrames[i]);
+    }
+    printf("\n");
 }
 
 int isFrameActive(char target, char* activeFrames, int start, int end){
@@ -80,7 +91,7 @@ void pager_fifo(char* content, size_t content_size, int frames){
         }
     }
 
-    print_stats("FIFO", frames, refs, pageFaults, evictions);
+    print_stats("FIFO", frames, refs, pageFaults, evictions, f_q);
 }
 
 void pager_lru(char* content, size_t content_size, int frames){
@@ -150,7 +161,7 @@ void pager_lru(char* content, size_t content_size, int frames){
         }
     }
 
-    print_stats("LRU", frames, refs, pageFaults, evictions);
+    print_stats("LRU", frames, refs, pageFaults, evictions, f_a);
 }
 
 void pager_opt(char* content, size_t content_size, int frames){
@@ -240,7 +251,7 @@ void pager_opt(char* content, size_t content_size, int frames){
         }
     }
     
-    print_stats("OPT", frames, refs, pageFaults, evictions);
+    print_stats("OPT", frames, refs, pageFaults, evictions, f_a);
 }
 
 
@@ -317,7 +328,7 @@ void pager_clock(char* content, size_t content_size, int frames){
         }
     }
 
-    print_stats("CLOCK", frames, refs, pageFaults, evictions);
+    print_stats("Clock/Second Chance", frames, refs, pageFaults, evictions, f_a);
 }
 
 void pager_nru(char* content, size_t content_size, int frames){
@@ -414,5 +425,149 @@ void pager_nru(char* content, size_t content_size, int frames){
         printf("\n\n"); 
     }
 
-    print_stats("NRU", frames, refs, pageFaults, evictions);
+    print_stats("NRU (Not Recently Used)", frames, refs, pageFaults, evictions, f_a);
+}
+
+void pager_lfu(char* content, size_t content_size, int frames){
+    if (frames > MAX_FRAMES) {printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n"); return;}
+
+    //array init
+    char f_a[MAX_FRAMES] = {-1};
+    int f_a_f[MAX_FRAMES] = {0}; //frequency counts
+    int f_a_t[MAX_FRAMES] = {0}; // timestamp FIFO
+    int time = 0;               // active time tracker
+    int f_a_q = 0; //active frames
+
+    char *p = content;
+    char *end;
+
+    int pageFaults = 0;
+    int evictions = 0;
+    int refs = 0;
+
+    while (*p != '\0') {
+        long f = strtol(p, &end, 10);
+
+        if (p != end){
+            ++refs;
+
+            int isActive = isFrameActive(f, f_a, 0, f_a_q - 1);
+
+            if (!isActive){
+                ++pageFaults;
+
+                if (f_a_q == frames){
+                    ++evictions;
+
+                    // LFU with FIFO
+                    int lfu_idx = 0;
+
+                    for (int i = 1; i < frames; ++i){
+                        if (f_a_f[i] < f_a_f[lfu_idx] || // test for least frequently used
+                           (f_a_f[i] == f_a_f[lfu_idx] &&
+                            f_a_t[i] < f_a_t[lfu_idx])) { // tie-breaker: FIFO
+                            lfu_idx = i;
+                        }
+                    }
+
+                    f_a[lfu_idx] = f;
+                    f_a_f[lfu_idx] = 1;
+                    f_a_t[lfu_idx] = time++;
+                }
+                else{
+                    f_a[f_a_q] = f;
+                    f_a_f[f_a_q] = 1;
+                    f_a_t[f_a_q] = time++;
+                    ++f_a_q;
+                }
+            }
+            else{
+                for (int i = 0; i < f_a_q; ++i){
+                    if (f_a[i] == f){
+                        f_a_f[i]++;
+                        break;
+                    }
+                }
+            }
+
+            p = end;
+        } else {
+            p++;
+        }
+
+    }
+
+    print_stats("LFU (Least Frequently Used)", frames, refs, pageFaults, evictions, f_a);
+}
+
+void pager_mfu(char* content, size_t content_size, int frames){
+    if (frames > MAX_FRAMES) {printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n"); return;}
+
+    //array init
+    char f_a[MAX_FRAMES] = {-1};
+    int f_a_f[MAX_FRAMES] = {0}; //frequency counts
+    int f_a_t[MAX_FRAMES] = {0}; // timestamp FIFO
+    int time = 0;               // active time tracker
+    
+    int f_a_q = 0; //active frames
+
+    char *p = content;
+    char *end;
+
+    int pageFaults = 0;
+    int evictions = 0;
+    int refs = 0;
+
+   while (*p != '\0') {
+        long f = strtol(p, &end, 10);
+
+        if (p != end){
+            ++refs;
+
+            int isActive = isFrameActive(f, f_a, 0, f_a_q - 1);
+
+            if (!isActive){
+                ++pageFaults;
+
+                if (f_a_q == frames){
+                    ++evictions;
+
+                    // MFU with FIFO
+                    int lfu_idx = 0;
+
+                    for (int i = 1; i < frames; ++i){
+                        if (f_a_f[i] > f_a_f[lfu_idx] || // test for most frequently used
+                           (f_a_f[i] == f_a_f[lfu_idx] && 
+                            f_a_t[i] < f_a_t[lfu_idx])) { // test for FIFO if tie
+                            lfu_idx = i;
+                        }
+                    }
+
+                    f_a[lfu_idx] = f;
+                    f_a_f[lfu_idx] = 1;
+                    f_a_t[lfu_idx] = time++;
+                }
+                else{
+                    f_a[f_a_q] = f;
+                    f_a_f[f_a_q] = 1;
+                    f_a_t[f_a_q] = time++;
+                    ++f_a_q;
+                }
+            }
+            else{
+                for (int i = 0; i < f_a_q; ++i){
+                    if (f_a[i] == f){
+                        f_a_f[i]++;
+                        break;
+                    }
+                }
+            }
+
+            p = end;
+        } else {
+            p++;
+        }
+       
+    }
+    print_stats("MFU (Most Frequently Used)", frames, refs, pageFaults, evictions, f_a);
 }
