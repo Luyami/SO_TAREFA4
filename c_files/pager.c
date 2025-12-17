@@ -1,25 +1,6 @@
 #include <pager.h>
 #include <stdio.h>
 
-static void print_stats(const char* name, int frames, int refs, int pageFaults, int evictions, char* activeFrames){
-    printf("Algoritmo: %s\n", name);
-    printf("Frames: %i\n", frames);
-    printf("Referências: %i\n", refs);
-    printf("Falta de Páginas: %i\n", pageFaults);
-    float faultRate = refs ? (float)pageFaults / refs : 0.0f;
-    printf("Taxa de Faltas: %.2f%%\n", faultRate * 100.0f);
-    printf("Evicções: %i\n", evictions);
-    printf("frames_ids: ");
-    for (int i = 0; i < frames; ++i){
-        printf("%d ", i);
-    }
-    printf("\n");
-    printf("pages_ids: ");
-    for (int i = 0; i < frames; ++i){
-        printf("%d ", activeFrames[i]);
-    }
-    printf("\n");
-}
 
 int isFrameActive(char target, char* activeFrames, int start, int end){
     if (start < 0 || end < 0) return 0;
@@ -35,8 +16,17 @@ int isFrameActive(char target, char* activeFrames, int start, int end){
     return 0;
 }
 
-void pager_fifo(char* content, size_t content_size, int frames){
-    if (frames > MAX_FRAMES) {printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n"); return;}
+pagination_stats pager_fifo(char* content, size_t content_size, int frames){
+    if (frames > MAX_FRAMES) {
+        printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n"); 
+        return (pagination_stats){
+            .name = "FIFO",
+            .frames = frames,
+            .refs = 0,
+            .pageFaults = 0,
+            .evictions = 0,
+        };
+    }
 
     //queue init
     char f_q[MAX_FRAMES] = {-1};
@@ -90,12 +80,31 @@ void pager_fifo(char* content, size_t content_size, int frames){
             p++;
         }
     }
+    pagination_stats stats = {
+    .name = "FIFO",
+    .frames = frames,
+    .refs = refs,
+    .pageFaults = pageFaults,
+    .evictions = evictions,
+    };
+    for (int i = 0; i < frames; i++) {
+        stats.activeFrames[i] = f_q[i];
+    }
 
-    print_stats("FIFO", frames, refs, pageFaults, evictions, f_q);
+    return stats;
 }
 
-void pager_lru(char* content, size_t content_size, int frames){
-    if (frames > MAX_FRAMES) {printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n"); return;}
+pagination_stats pager_lru(char* content, size_t content_size, int frames){
+    if (frames > MAX_FRAMES) {
+        printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n"); 
+        return (pagination_stats){
+            .name = "LRU",
+            .frames = frames,
+            .refs = 0,
+            .pageFaults = 0,
+            .evictions = 0,
+        };
+    }
 
     //array init
     char f_a[MAX_FRAMES] = {-1};
@@ -161,11 +170,30 @@ void pager_lru(char* content, size_t content_size, int frames){
         }
     }
 
-    print_stats("LRU", frames, refs, pageFaults, evictions, f_a);
+    pagination_stats stats = {
+    .name = "LRU",
+    .frames = frames,
+    .refs = refs,
+    .pageFaults = pageFaults,
+    .evictions = evictions,
+    };
+    for (int i = 0; i < frames; i++) {
+        stats.activeFrames[i] = f_a[i];
+    }
+    return stats;
 }
 
-void pager_opt(char* content, size_t content_size, int frames){
-    if (frames > MAX_FRAMES) {printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n"); return;}
+pagination_stats pager_opt(char* content, size_t content_size, int frames){
+    if (frames > MAX_FRAMES) {
+        printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n"); 
+        return (pagination_stats){
+            .name = "OPT",
+            .frames = frames,
+            .refs = 0,
+            .pageFaults = 0,
+            .evictions = 0,
+        };
+    }
 
     //array init
     char f_a[MAX_FRAMES] = {-1};
@@ -251,13 +279,30 @@ void pager_opt(char* content, size_t content_size, int frames){
         }
     }
     
-    print_stats("OPT", frames, refs, pageFaults, evictions, f_a);
+    pagination_stats stats = {
+    .name = "OPT",
+    .frames = frames,
+    .refs = refs,
+    .pageFaults = pageFaults,
+    .evictions = evictions,
+    };
+    for (int i = 0; i < frames; i++) {
+        stats.activeFrames[i] = f_a[i];
+    }
+    return stats;
 }
 
-
-
-void pager_clock(char* content, size_t content_size, int frames){
-    if (frames > MAX_FRAMES) {printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n"); return;}
+pagination_stats pager_clock(char* content, size_t content_size, int frames){
+    if (frames > MAX_FRAMES) {
+    printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n");
+        return (pagination_stats){
+            .name = "Clock/Second Chance",
+            .frames = frames,
+            .refs = 0,
+            .pageFaults = 0,
+            .evictions = 0,
+        };
+    }
 
     //array init
     char f_a[MAX_FRAMES] = {-1};
@@ -328,11 +373,30 @@ void pager_clock(char* content, size_t content_size, int frames){
         }
     }
 
-    print_stats("Clock/Second Chance", frames, refs, pageFaults, evictions, f_a);
+    pagination_stats stats = {
+        .name = "Clock/Second Chance",
+        .frames = frames,
+        .refs = refs,
+        .pageFaults = pageFaults,
+        .evictions = evictions,
+    };
+    for (int i = 0; i < frames; i++) {
+        stats.activeFrames[i] = f_a[i];
+    }
+    return stats;
 }
 
-void pager_nru(char* content, size_t content_size, int frames){
-    if (frames > MAX_FRAMES) {printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n"); return;}
+pagination_stats pager_nru(char* content, size_t content_size, int frames){
+    if (frames > MAX_FRAMES) {
+    printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n");
+        return (pagination_stats){
+            .name = "NRU (Not Recently Used)",
+            .frames = frames,
+            .refs = 0,
+            .pageFaults = 0,
+            .evictions = 0,
+        };
+    }
 
     //array init
     char f_a[MAX_FRAMES] = {-1};
@@ -352,7 +416,6 @@ void pager_nru(char* content, size_t content_size, int frames){
 
     while (*p != '\0') {
         long f = strtol(p, &end, 10);
-        printf("Referência à página %ld\n", f);
          
 
         if (p != end){
@@ -417,19 +480,33 @@ void pager_nru(char* content, size_t content_size, int frames){
         } 
         else{
             p++;
-        }
-        printf("Estado dos frames: ");
-        for (int i = 0; i < f_a_q; ++i){
-            printf("%d(r=%d,m=%d) ", f_a[i], f_a_r[i], f_a_m[i]);
-        }
-        printf("\n\n"); 
+        } 
     }
 
-    print_stats("NRU (Not Recently Used)", frames, refs, pageFaults, evictions, f_a);
+    pagination_stats stats = {
+        .name = "NRU (Not Recently Used)",
+        .frames = frames,
+        .refs = refs,
+        .pageFaults = pageFaults,
+        .evictions = evictions,
+    };
+    for (int i = 0; i < frames; i++) {
+        stats.activeFrames[i] = f_a[i];
+    }
+    return stats;
 }
 
-void pager_lfu(char* content, size_t content_size, int frames){
-    if (frames > MAX_FRAMES) {printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n"); return;}
+pagination_stats pager_lfu(char* content, size_t content_size, int frames){
+    if (frames > MAX_FRAMES) {
+    printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n");
+        return (pagination_stats){
+            .name = "LFU (Least Frequently Used)",
+            .frames = frames,
+            .refs = 0,
+            .pageFaults = 0,
+            .evictions = 0,
+        };
+    }
 
     //array init
     char f_a[MAX_FRAMES] = {-1};
@@ -497,11 +574,30 @@ void pager_lfu(char* content, size_t content_size, int frames){
 
     }
 
-    print_stats("LFU (Least Frequently Used)", frames, refs, pageFaults, evictions, f_a);
+    pagination_stats stats = {
+        .name = "LFU (Least Frequently Used)",
+        .frames = frames,
+        .refs = refs,
+        .pageFaults = pageFaults,
+        .evictions = evictions,
+    };
+    for (int i = 0; i < frames; i++) {
+        stats.activeFrames[i] = f_a[i];
+    }
+    return stats;
 }
 
-void pager_mfu(char* content, size_t content_size, int frames){
-    if (frames > MAX_FRAMES) {printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n"); return;}
+pagination_stats pager_mfu(char* content, size_t content_size, int frames){
+    if (frames > MAX_FRAMES) {
+    printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n");
+        return (pagination_stats){
+            .name = "MFU (Most Frequently Used)",
+            .frames = frames,
+            .refs = 0,
+            .pageFaults = 0,
+            .evictions = 0,
+        };
+    }
 
     //array init
     char f_a[MAX_FRAMES] = {-1};
@@ -569,5 +665,82 @@ void pager_mfu(char* content, size_t content_size, int frames){
         }
        
     }
-    print_stats("MFU (Most Frequently Used)", frames, refs, pageFaults, evictions, f_a);
+    pagination_stats stats = {
+        .name = "MFU (Most Frequently Used)",
+        .frames = frames,
+        .refs = refs,
+        .pageFaults = pageFaults,
+        .evictions = evictions,
+    };
+    for (int i = 0; i < frames; i++) {
+        stats.activeFrames[i] = f_a[i];
+    }
+    return stats;
+}
+
+void pager_all(char* content, size_t content_size) {
+    pagination_stats stats3[] = {
+        pager_fifo(content, content_size, 3),
+        pager_lru(content, content_size, 3),
+        pager_opt(content, content_size, 3),
+        pager_clock(content, content_size, 3),
+        pager_nru(content, content_size, 3),
+        pager_lfu(content, content_size, 3),
+        pager_mfu(content, content_size, 3)
+    };
+
+    pagination_stats stats4[] = {
+        pager_fifo(content, content_size, 4),
+        pager_lru(content, content_size, 4),
+        pager_opt(content, content_size, 4),
+        pager_clock(content, content_size, 4),
+        pager_nru(content, content_size, 4),
+        pager_lfu(content, content_size, 4),
+        pager_mfu(content, content_size, 4)
+    };
+
+    pagination_stats stats5[] = {
+        pager_fifo(content, content_size, 5),
+        pager_lru(content, content_size, 5),
+        pager_opt(content, content_size, 5),
+        pager_clock(content, content_size, 5),
+        pager_nru(content, content_size, 5),
+        pager_lfu(content, content_size, 5),
+        pager_mfu(content, content_size, 5)
+    };
+
+    const char* headers[] = {
+        "FIFO", "LRU", "OPT", "CLOCK", "NRU", "LFU", "MFU"
+    };
+
+    printf("\nComparação de Page Faults\n");
+    printf("Molduras ");
+    for (int i = 0; i < 7; i++) {
+        printf("| %-6s ", headers[i]);
+    }
+    printf("\n");
+
+    printf("---------");
+    for (int i = 0; i < 7; i++) {
+        printf("+--------");
+    }
+    printf("\n");
+
+    printf("3        ");
+    for (int i = 0; i < 7; i++) {
+        printf("| %-6d ", stats3[i].pageFaults);
+    }
+    printf("\n");
+
+    printf("4        ");
+    for (int i = 0; i < 7; i++) {
+        printf("| %-6d ", stats4[i].pageFaults);
+    }
+    printf("\n");
+
+    printf("5        ");
+    for (int i = 0; i < 7; i++) {
+        printf("| %-6d ", stats5[i].pageFaults);
+    }
+    printf("\n");
 }
