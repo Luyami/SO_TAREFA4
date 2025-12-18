@@ -178,28 +178,28 @@ void pager(char alg[MAX_ARG_LEN], char file_path[MAX_ARG_LEN], int frames){
     if (!content) {printf("Pager: Could not read specified file!\n"); return;}
 
     if (strcmp(alg, "fifo") == 0){
-        pagination_stats stats = pager_fifo(content, f_size, frames);
+        paging_stats stats = pager_fifo(content, f_size, frames);
         print_stats(stats);
     } else if (strcmp(alg, "lru") == 0){
-        pagination_stats stats = pager_lru(content, f_size, frames);
+        paging_stats stats = pager_lru(content, f_size, frames);
         print_stats(stats);
     } else if (strcmp(alg, "opt") == 0){
-        pagination_stats stats = pager_opt(content, f_size, frames);
+        paging_stats stats = pager_opt(content, f_size, frames);
         print_stats(stats);
     } else if (strcmp(alg, "clock") == 0){
-        pagination_stats stats = pager_clock(content, f_size, frames);
+        paging_stats stats = pager_clock(content, f_size, frames);
         print_stats(stats);
     } else if (strcmp(alg, "nru") == 0){
-        pagination_stats stats = pager_nru(content, f_size, frames);
+        paging_stats stats = pager_nru(content, f_size, frames);
         print_stats(stats);
     } else if (strcmp(alg, "lfu") == 0){
-        pagination_stats stats = pager_lfu(content, f_size, frames);
+        paging_stats stats = pager_lfu(content, f_size, frames);
         print_stats(stats);
     } else if (strcmp(alg, "mfu") == 0){
-        pagination_stats stats = pager_mfu(content, f_size, frames);
+        paging_stats stats = pager_mfu(content, f_size, frames);
         print_stats(stats);
     }else if (strcmp(alg, "all") == 0){
-        pager_all(content, f_size);
+        pager_all(content, f_size, frames);
     }
     else printf("Pager: Specified algorithm is not available!\n");
 }

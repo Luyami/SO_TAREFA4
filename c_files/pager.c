@@ -16,10 +16,10 @@ int isFrameActive(char target, char* activeFrames, int start, int end){
     return 0;
 }
 
-pagination_stats pager_fifo(char* content, size_t content_size, int frames){
+paging_stats pager_fifo(char* content, size_t content_size, int frames){
     if (frames > MAX_FRAMES) {
         printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n"); 
-        return (pagination_stats){
+        return (paging_stats){
             .name = "FIFO",
             .frames = frames,
             .refs = 0,
@@ -80,7 +80,7 @@ pagination_stats pager_fifo(char* content, size_t content_size, int frames){
             p++;
         }
     }
-    pagination_stats stats = {
+    paging_stats stats = {
     .name = "FIFO",
     .frames = frames,
     .refs = refs,
@@ -94,10 +94,10 @@ pagination_stats pager_fifo(char* content, size_t content_size, int frames){
     return stats;
 }
 
-pagination_stats pager_lru(char* content, size_t content_size, int frames){
+paging_stats pager_lru(char* content, size_t content_size, int frames){
     if (frames > MAX_FRAMES) {
         printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n"); 
-        return (pagination_stats){
+        return (paging_stats){
             .name = "LRU",
             .frames = frames,
             .refs = 0,
@@ -170,7 +170,7 @@ pagination_stats pager_lru(char* content, size_t content_size, int frames){
         }
     }
 
-    pagination_stats stats = {
+    paging_stats stats = {
     .name = "LRU",
     .frames = frames,
     .refs = refs,
@@ -183,10 +183,10 @@ pagination_stats pager_lru(char* content, size_t content_size, int frames){
     return stats;
 }
 
-pagination_stats pager_opt(char* content, size_t content_size, int frames){
+paging_stats pager_opt(char* content, size_t content_size, int frames){
     if (frames > MAX_FRAMES) {
         printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n"); 
-        return (pagination_stats){
+        return (paging_stats){
             .name = "OPT",
             .frames = frames,
             .refs = 0,
@@ -279,7 +279,7 @@ pagination_stats pager_opt(char* content, size_t content_size, int frames){
         }
     }
     
-    pagination_stats stats = {
+    paging_stats stats = {
     .name = "OPT",
     .frames = frames,
     .refs = refs,
@@ -292,10 +292,10 @@ pagination_stats pager_opt(char* content, size_t content_size, int frames){
     return stats;
 }
 
-pagination_stats pager_clock(char* content, size_t content_size, int frames){
+paging_stats pager_clock(char* content, size_t content_size, int frames){
     if (frames > MAX_FRAMES) {
     printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n");
-        return (pagination_stats){
+        return (paging_stats){
             .name = "Clock/Second Chance",
             .frames = frames,
             .refs = 0,
@@ -373,7 +373,7 @@ pagination_stats pager_clock(char* content, size_t content_size, int frames){
         }
     }
 
-    pagination_stats stats = {
+    paging_stats stats = {
         .name = "Clock/Second Chance",
         .frames = frames,
         .refs = refs,
@@ -386,10 +386,10 @@ pagination_stats pager_clock(char* content, size_t content_size, int frames){
     return stats;
 }
 
-pagination_stats pager_nru(char* content, size_t content_size, int frames){
+paging_stats pager_nru(char* content, size_t content_size, int frames){
     if (frames > MAX_FRAMES) {
     printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n");
-        return (pagination_stats){
+        return (paging_stats){
             .name = "NRU (Not Recently Used)",
             .frames = frames,
             .refs = 0,
@@ -483,7 +483,7 @@ pagination_stats pager_nru(char* content, size_t content_size, int frames){
         } 
     }
 
-    pagination_stats stats = {
+    paging_stats stats = {
         .name = "NRU (Not Recently Used)",
         .frames = frames,
         .refs = refs,
@@ -496,10 +496,10 @@ pagination_stats pager_nru(char* content, size_t content_size, int frames){
     return stats;
 }
 
-pagination_stats pager_lfu(char* content, size_t content_size, int frames){
+paging_stats pager_lfu(char* content, size_t content_size, int frames){
     if (frames > MAX_FRAMES) {
     printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n");
-        return (pagination_stats){
+        return (paging_stats){
             .name = "LFU (Least Frequently Used)",
             .frames = frames,
             .refs = 0,
@@ -574,7 +574,7 @@ pagination_stats pager_lfu(char* content, size_t content_size, int frames){
 
     }
 
-    pagination_stats stats = {
+    paging_stats stats = {
         .name = "LFU (Least Frequently Used)",
         .frames = frames,
         .refs = refs,
@@ -587,10 +587,10 @@ pagination_stats pager_lfu(char* content, size_t content_size, int frames){
     return stats;
 }
 
-pagination_stats pager_mfu(char* content, size_t content_size, int frames){
+paging_stats pager_mfu(char* content, size_t content_size, int frames){
     if (frames > MAX_FRAMES) {
     printf("Pager: WE DON'T HAVE THAT MUCH FRAMES!\n");
-        return (pagination_stats){
+        return (paging_stats){
             .name = "MFU (Most Frequently Used)",
             .frames = frames,
             .refs = 0,
@@ -665,7 +665,7 @@ pagination_stats pager_mfu(char* content, size_t content_size, int frames){
         }
        
     }
-    pagination_stats stats = {
+    paging_stats stats = {
         .name = "MFU (Most Frequently Used)",
         .frames = frames,
         .refs = refs,
@@ -678,36 +678,19 @@ pagination_stats pager_mfu(char* content, size_t content_size, int frames){
     return stats;
 }
 
-void pager_all(char* content, size_t content_size) {
-    pagination_stats stats3[] = {
-        pager_fifo(content, content_size, 3),
-        pager_lru(content, content_size, 3),
-        pager_opt(content, content_size, 3),
-        pager_clock(content, content_size, 3),
-        pager_nru(content, content_size, 3),
-        pager_lfu(content, content_size, 3),
-        pager_mfu(content, content_size, 3)
-    };
+void pager_all(char* content, size_t content_size, int frames){
+    paging_stats** stats = (paging_stats**) malloc(sizeof(paging_stats*) * frames);
+    for (int i = 0; i < frames; ++i) stats[i] = (paging_stats*) malloc(sizeof(paging_stats) * 7);
 
-    pagination_stats stats4[] = {
-        pager_fifo(content, content_size, 4),
-        pager_lru(content, content_size, 4),
-        pager_opt(content, content_size, 4),
-        pager_clock(content, content_size, 4),
-        pager_nru(content, content_size, 4),
-        pager_lfu(content, content_size, 4),
-        pager_mfu(content, content_size, 4)
-    };
-
-    pagination_stats stats5[] = {
-        pager_fifo(content, content_size, 5),
-        pager_lru(content, content_size, 5),
-        pager_opt(content, content_size, 5),
-        pager_clock(content, content_size, 5),
-        pager_nru(content, content_size, 5),
-        pager_lfu(content, content_size, 5),
-        pager_mfu(content, content_size, 5)
-    };
+    for (int i = 0; i < frames; ++i){
+        stats[i][0] = pager_fifo(content, content_size, i+1);
+        stats[i][1] = pager_lru(content, content_size, i+1);
+        stats[i][2] = pager_opt(content, content_size, i+1);
+        stats[i][3] = pager_clock(content, content_size, i+1);
+        stats[i][4] = pager_nru(content, content_size, i+1);
+        stats[i][5] = pager_lfu(content, content_size, i+1);
+        stats[i][6] = pager_mfu(content, content_size, i+1);
+    }
 
     const char* headers[] = {
         "FIFO", "LRU", "OPT", "CLOCK", "NRU", "LFU", "MFU"
@@ -726,21 +709,14 @@ void pager_all(char* content, size_t content_size) {
     }
     printf("\n");
 
-    printf("3        ");
-    for (int i = 0; i < 7; i++) {
-        printf("| %-6d ", stats3[i].pageFaults);
-    }
-    printf("\n");
+    for (int i = 0; i < frames; ++i){
+        printf("%d        ", i+1);
 
-    printf("4        ");
-    for (int i = 0; i < 7; i++) {
-        printf("| %-6d ", stats4[i].pageFaults);
-    }
-    printf("\n");
+        for (int j = 0; j< 7; j++) printf("| %-6d ", stats[i][j].pageFaults);
 
-    printf("5        ");
-    for (int i = 0; i < 7; i++) {
-        printf("| %-6d ", stats5[i].pageFaults);
+        printf("\n");
     }
-    printf("\n");
+
+    for (int i = 0; i < frames; ++i) free(stats[i]);
+    free(stats);
 }

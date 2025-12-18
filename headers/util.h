@@ -7,16 +7,16 @@
 
 #define MAX_FRAMES 128
 
-typedef struct pagination_stats{
+typedef struct paging_stats{
     const char* name;
     int frames;
     int refs;
     int pageFaults;
     int evictions;
     int activeFrames[MAX_FRAMES];
-} pagination_stats;
+} paging_stats;
 
 char* read_file(const char* path, size_t* out_size);
-void print_stats(pagination_stats stats);
+void print_stats(paging_stats stats);
 
 #endif

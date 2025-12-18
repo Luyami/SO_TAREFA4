@@ -21,7 +21,7 @@ char* read_file(const char* path, size_t* out_size){
     return data;
 }
 
-void print_stats(pagination_stats stats){
+void print_stats(paging_stats stats){
     printf("Algoritmo: %s\n", stats.name);
     printf("Frames: %i\n", stats.frames);
     printf("Referências: %i\n", stats.refs);
